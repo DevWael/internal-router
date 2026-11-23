@@ -68,7 +68,7 @@ the first time it's requested.
    folders it mounts:
 
    ```bash
-   mkdir -p internal-router/{ca,data,tailscale,caddy/data,caddy/config}
+   mkdir -p internal-router/{ca,data,run,tailscale,caddy/data,caddy/config}
    cd internal-router
    ```
 
@@ -112,8 +112,11 @@ the first time it's requested.
 
 ## Adding names
 
-In the web UI at `https://router.internal`, enter a name and a target and save. Saving an existing
-name replaces its target.
+In the web UI at `https://router.internal`, enter a name, pick a target and save. The target list
+shows the machines on your tailnet (read from the router's Tailscale through the socket in `run/`):
+choose one, then the protocol and port. Pick **Custom URL…** to type any other address, such as a
+LAN IP. Saving an existing name replaces its target. The button in the top right switches between
+light and dark mode, and the browser remembers the choice.
 
 From the CLI inside the stack:
 
@@ -174,6 +177,9 @@ TrueNAS feature, and re-creating the app removes it.
   by root, and back it up somewhere private.
 - The Tailscale container needs `NET_ADMIN` and `/dev/net/tun` so the stack can reach other
   tailnet nodes. The other two containers have no extra privileges.
+- The router container reads the Tailscale socket in `run/` (mounted read-only) to list machines.
+  It only calls the status endpoint, but the socket itself is the local Tailscale API, so keep
+  `run/` out of reach of anything else.
 
 ## Settings
 
@@ -190,6 +196,7 @@ TrueNAS feature, and re-creating the app removes it.
 | `ROUTER_UI_LISTEN` | `127.0.0.1:8080` | UI and API, reached through Caddy |
 | `CADDY_ADMIN` | `http://localhost:2019` | Caddy admin API |
 | `ROUTER_URL` | `http://127.0.0.1:8080` | Router the CLI talks to (`--server` overrides it) |
+| `ROUTER_TAILSCALE_SOCKET` | `/var/run/tailscale/tailscaled.sock` | Tailscale socket used for the machine list. Empty turns the list off |
 
 ## Development
 

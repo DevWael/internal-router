@@ -148,7 +148,7 @@ func TestCaddyConfig(t *testing.T) {
 
 func TestAPIRejectsOtherOrigins(t *testing.T) {
 	s, _ := OpenStore(filepath.Join(t.TempDir(), "routes.json"))
-	h := apiHandler(s, caddySettings{Domain: "internal", RouterName: "router", AdminURL: "http://127.0.0.1:1"})
+	h := apiHandler(s, caddySettings{Domain: "internal", RouterName: "router", AdminURL: "http://127.0.0.1:1"}, newTailnet(""))
 
 	req := httptest.NewRequest("DELETE", "/api/routes/gym", nil)
 	req.Header.Set("Origin", "https://evil.example")
@@ -167,5 +167,43 @@ func TestAPIRejectsOtherOrigins(t *testing.T) {
 	}
 	if len(s.List()) != 0 {
 		t.Fatal("route was saved although Caddy did not accept it")
+	}
+}
+
+func TestTailnetMachines(t *testing.T) {
+	sock := filepath.Join(t.TempDir(), "ts.sock")
+	ln, err := net.Listen("unix", sock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/localapi/v0/status" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Write([]byte(`{"Self":{"DNSName":"router.example.ts.net."},"Peer":{
+			"a":{"HostName":"nas","DNSName":"nas.example.ts.net.","TailscaleIPs":["fd7a::2","100.64.0.2"],"OS":"linux","Online":true},
+			"b":{"HostName":"Work Laptop","DNSName":"laptop.example.ts.net.","TailscaleIPs":["100.64.0.3"],"OS":"macOS","Online":false},
+			"c":{"HostName":"shared","DNSName":"","TailscaleIPs":["100.64.0.4"]}}}`))
+	})}
+	go srv.Serve(ln)
+	defer srv.Close()
+
+	got, err := newTailnet(sock).Machines()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("machines: %+v", got)
+	}
+	if got[0].Name != "laptop" || got[0].Online || got[0].DNS != "laptop.example.ts.net" {
+		t.Errorf("first machine: %+v", got[0])
+	}
+	if got[1].Name != "nas" || got[1].IP != "100.64.0.2" || !got[1].Online {
+		t.Errorf("second machine: %+v", got[1])
+	}
+
+	if _, err := newTailnet("").Machines(); err == nil {
+		t.Error("expected an error without a socket")
 	}
 }

@@ -140,7 +140,7 @@ func serve() error {
 
 	srv := &http.Server{
 		Addr:              cs.UIDial,
-		Handler:           apiHandler(store, cs),
+		Handler:           apiHandler(store, cs, newTailnet(env("ROUTER_TAILSCALE_SOCKET", "/var/run/tailscale/tailscaled.sock"))),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	go func() { errc <- fmt.Errorf("http: %w", srv.ListenAndServe()) }()
@@ -187,7 +187,7 @@ func writeErr(w http.ResponseWriter, status int, err error) {
 	writeJSON(w, status, map[string]string{"error": err.Error()})
 }
 
-func apiHandler(store *Store, cs caddySettings) http.Handler {
+func apiHandler(store *Store, cs caddySettings, tn *tailnet) http.Handler {
 	uiOrigin := "https://" + cs.host(cs.RouterName)
 	mux := http.NewServeMux()
 
@@ -209,6 +209,17 @@ func apiHandler(store *Store, cs caddySettings) http.Handler {
 	})
 	mux.HandleFunc("GET /api/routes", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, store.List())
+	})
+	mux.HandleFunc("GET /api/machines", func(w http.ResponseWriter, r *http.Request) {
+		machines, err := tn.Machines()
+		out := map[string]any{"machines": machines}
+		if machines == nil {
+			out["machines"] = []Machine{}
+		}
+		if err != nil {
+			out["error"] = err.Error()
+		}
+		writeJSON(w, http.StatusOK, out)
 	})
 	mux.HandleFunc("PUT /api/routes/{name}", func(w http.ResponseWriter, r *http.Request) {
 		name := strings.ToLower(r.PathValue("name"))

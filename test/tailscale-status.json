@@ -1,0 +1,1 @@
+{"Self":{"DNSName":"router.example.ts.net."},"Peer":{"n1":{"HostName":"whoami","DNSName":"whoami.","TailscaleIPs":["100.64.0.20"],"OS":"linux","Online":true},"n2":{"HostName":"nas","DNSName":"nas.example.ts.net.","TailscaleIPs":["100.64.0.21"],"OS":"linux","Online":false}}}

@@ -8,6 +8,7 @@ services:
       - TS_HOSTNAME=router
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
+      - TS_SOCKET=/var/run/tailscale/tailscaled.sock
     devices:
       - /dev/net/tun:/dev/net/tun
     cap_add:
@@ -16,6 +17,7 @@ services:
       - net.ipv4.ip_unprivileged_port_start=0
     volumes:
       - /mnt/POOL/apps/internal-router/tailscale:/var/lib/tailscale
+      - /mnt/POOL/apps/internal-router/run:/var/run/tailscale
 
   caddy:
     image: caddy:2-alpine
@@ -46,6 +48,7 @@ services:
       - CA_ROOT_KEY=/ca/ca.key
     volumes:
       - /mnt/POOL/apps/internal-router/data:/data
+      - /mnt/POOL/apps/internal-router/run:/var/run/tailscale:ro
 
 x-portals:
   - name: Web UI

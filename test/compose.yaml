@@ -32,6 +32,21 @@ services:
       - CA_INTERMEDIATE_KEY=/ca/ca.key
     volumes:
       - router-data:/data
+      - ts-run:/var/run/tailscale
+    depends_on:
+      - fake-tailscale
+
+  fake-tailscale:
+    image: alpine/socat:1.8.0.3
+    entrypoint: ["sh", "-c"]
+    command:
+      - >-
+        printf 'HTTP/1.0 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n' > /tmp/resp &&
+        cat /status.json >> /tmp/resp &&
+        exec socat -U UNIX-LISTEN:/var/run/tailscale/tailscaled.sock,fork,mode=666,unlink-early SYSTEM:"cat /tmp/resp"
+    volumes:
+      - ts-run:/var/run/tailscale
+      - ./tailscale-status.json:/status.json:ro
 
   whoami:
     image: traefik/whoami:v1.10
@@ -40,3 +55,4 @@ volumes:
   caddy-data:
   caddy-config:
   router-data:
+  ts-run:

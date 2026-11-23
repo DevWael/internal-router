@@ -3,7 +3,13 @@ set -eu
 cd "$(dirname "$0")"
 
 fail() { echo "FAIL: $*"; exit 1; }
-https() { curl -s --max-time 10 --cacert ca/ca.crt --resolve "$1:18443:127.0.0.1" "https://$1:18443$2"; }
+https() {
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    curl -sf --max-time 10 --cacert ca/ca.crt --resolve "$1:18443:127.0.0.1" "https://$1:18443$2" && return 0
+    sleep 1
+  done
+  return 1
+}
 cli() { docker compose exec -T router internal-router "$@"; }
 
 mkdir -p ca
@@ -40,6 +46,12 @@ code=$(curl -s -o /dev/null -w "%{http_code}" --cacert ca/ca.crt --resolve route
 https echo.internal / | grep -q "Host: echo.internal" || fail "route added through the API does not work"
 echo "ok: API add from the UI origin, cross-origin writes refused"
 
+machines=$(https router.internal /api/machines)
+echo "$machines" | grep -q '"dns":"whoami"' || fail "tailnet machines missing: $machines"
+echo "$machines" | grep -q '"name":"nas","dns":"nas.example.ts.net","ip":"100.64.0.21","os":"linux","online":false' \
+  || fail "offline machine not listed as expected: $machines"
+echo "ok: tailnet machines listed from the Tailscale socket"
+
 cli add router http://whoami:80 2>/dev/null && fail "reserved name was accepted"
 cli add bad http://whoami/path 2>/dev/null && fail "target with a path was accepted"
 echo "ok: bad input refused"
@@ -62,7 +74,8 @@ echo "ok: routes survive Caddy and router restarts"
 
 cli rm whoami
 sleep 1
-https whoami.internal / >/dev/null 2>&1 && fail "removed route still answers"
+curl -sf --max-time 5 --cacert ca/ca.crt --resolve whoami.internal:18443:127.0.0.1 https://whoami.internal:18443/ >/dev/null 2>&1 \
+  && fail "removed route still answers"
 echo "ok: removed route stops answering"
 
 echo "all tests passed"
