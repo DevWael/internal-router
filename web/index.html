@@ -7,60 +7,160 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <style>
   :root {
-    --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6677;
-    --line: #dde1e8; --accent: #2f6fdf; --accent-text: #ffffff; --danger: #c43c3c;
-    --input: #ffffff;
+    --page: #f7f8f8;
+    --panel: #ffffff;
+    --raised: #f3f4f5;
+    --hover: rgba(0, 0, 0, 0.035);
+    --line: #e6e6e6;
+    --line-strong: #d0d6e0;
+    --text: #1b1c1f;
+    --text-2: #3c4049;
+    --text-3: #62666d;
+    --text-4: #8a8f98;
+    --accent: #5e6ad2;
+    --accent-hover: #6c78e0;
+    --accent-text: #ffffff;
+    --accent-soft: rgba(94, 106, 210, 0.14);
+    --danger: #d24d57;
+    --danger-soft: rgba(210, 77, 87, 0.1);
+    --ok: #27a644;
+    --field: #ffffff;
+    --shadow: 0 1px 1px rgba(0, 0, 0, 0.04), 0 0 1px rgba(0, 0, 0, 0.08);
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #14171d; --panel: #1c2028; --text: #e6e9ef; --muted: #98a1b3;
-      --line: #2e3440; --accent: #5b8ff0; --accent-text: #0d1117; --danger: #ef6b6b;
-      --input: #232833;
+      --page: #08090a;
+      --panel: #0f1011;
+      --raised: #191a1b;
+      --hover: rgba(255, 255, 255, 0.04);
+      --line: rgba(255, 255, 255, 0.06);
+      --line-strong: rgba(255, 255, 255, 0.1);
+      --text: #f7f8f8;
+      --text-2: #d0d6e0;
+      --text-3: #8a8f98;
+      --text-4: #62666d;
+      --accent: #5e6ad2;
+      --accent-hover: #7170ff;
+      --accent-text: #ffffff;
+      --accent-soft: rgba(113, 112, 255, 0.16);
+      --danger: #eb5757;
+      --danger-soft: rgba(235, 87, 87, 0.12);
+      --ok: #27a644;
+      --field: rgba(255, 255, 255, 0.02);
+      --shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.4);
+      color-scheme: dark;
     }
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0;
+    background: var(--page);
+    color: var(--text);
+    font-family: "Inter Variable", "Inter", "SF Pro Text", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "cv01", "ss03";
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 820px; margin: 0 auto; padding: 32px 16px 48px; }
-  header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-  header img { width: 36px; height: 36px; }
-  h1 { font-size: 22px; margin: 0; }
-  .sub { color: var(--muted); margin: 2px 0 0; font-size: 14px; }
-  section {
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 10px; padding: 20px; margin-bottom: 20px;
+  .mono { font-family: "Berkeley Mono", ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; }
+  main { max-width: 880px; margin: 0 auto; padding: 40px 16px 64px; }
+
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  header img { width: 28px; height: 28px; border-radius: 7px; }
+  h1 { font-size: 20px; font-weight: 590; letter-spacing: -0.24px; margin: 0; line-height: 1.3; }
+  .sub { color: var(--text-3); margin: 0; font-size: 13px; letter-spacing: -0.13px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
   }
-  h2 { font-size: 16px; margin: 0 0 14px; }
-  form { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; align-items: end; }
-  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-  input[type=text] {
-    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
-    background: var(--input); color: var(--text); font: inherit;
+  .panel-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 14px 16px 0;
   }
-  .name-wrap { display: flex; align-items: center; gap: 4px; }
-  .name-wrap span { color: var(--muted); white-space: nowrap; }
-  .check { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-  button {
-    padding: 8px 16px; border: 0; border-radius: 6px; font: inherit; cursor: pointer;
-    background: var(--accent); color: var(--accent-text);
+  h2 { font-size: 13px; font-weight: 590; margin: 0; color: var(--text-2); letter-spacing: -0.13px; }
+  .count { color: var(--text-4); font-size: 12px; font-weight: 510; }
+
+  form { padding: 12px 16px 16px; }
+  .fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; gap: 8px; align-items: end; }
+  label.field-label { display: block; font-size: 12px; font-weight: 510; color: var(--text-3); margin: 0 0 6px 2px; }
+  .control {
+    display: flex; align-items: center;
+    height: 34px;
+    background: var(--field);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
   }
-  button.link { background: transparent; color: var(--accent); padding: 4px 8px; }
-  button.link.danger { color: var(--danger); }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-size: 13px; color: var(--muted); font-weight: 600; }
-  td { word-break: break-all; }
-  td:last-child { text-align: right; width: 1%; white-space: nowrap; }
-  a { color: var(--accent); }
-  .tag { font-size: 12px; color: var(--muted); }
-  #msg { min-height: 1.5em; margin: 10px 0 0; font-size: 14px; }
+  .control:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .control input {
+    flex: 1; min-width: 0; height: 100%;
+    padding: 0 10px; border: 0; outline: 0; background: transparent;
+    color: var(--text); font: inherit; font-size: 14px;
+  }
+  .control input::placeholder { color: var(--text-4); }
+  .control .suffix { padding-right: 10px; color: var(--text-4); font-size: 14px; white-space: nowrap; }
+
+  .btn {
+    height: 34px; padding: 0 14px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border-radius: 6px; border: 1px solid transparent;
+    font: inherit; font-size: 13px; font-weight: 510; cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+  .btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--accent-soft); }
+  .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { opacity: 0.6; cursor: default; }
+  .btn-ghost { height: 26px; padding: 0 8px; background: transparent; color: var(--text-3); font-size: 12px; }
+  .btn-ghost:hover { background: var(--hover); color: var(--text); }
+  .btn-ghost.danger:hover { background: var(--danger-soft); color: var(--danger); }
+
+  .options { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .check { display: inline-flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 12px; cursor: pointer; }
+  .check input { width: 14px; height: 14px; margin: 0; accent-color: var(--accent); }
+  #msg { font-size: 12px; color: var(--text-3); min-height: 18px; margin: 0; }
   #msg.error { color: var(--danger); }
-  .empty { color: var(--muted); padding: 8px 0; }
-  @media (max-width: 600px) {
-    form { grid-template-columns: 1fr; }
-    th:nth-child(2), td:nth-child(2) { display: none; }
+  #msg.ok { color: var(--ok); }
+
+  .list { list-style: none; margin: 0; padding: 6px; }
+  .row {
+    display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; gap: 12px; align-items: center;
+    min-height: 44px; padding: 6px 10px;
+    border-radius: 6px;
+    transition: background-color 120ms ease;
+  }
+  .row:hover, .row:focus-within { background: var(--hover); }
+  .row a {
+    color: var(--text); text-decoration: none; font-weight: 510;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .row a:hover { color: var(--accent-hover); }
+  .row a .domain { color: var(--text-4); font-weight: 400; }
+  .target { color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag {
+    display: inline-block; margin-left: 8px; padding: 0 6px; height: 18px; line-height: 18px;
+    border-radius: 4px; background: var(--raised); color: var(--text-3);
+    font-family: "Inter Variable", "Inter", "SF Pro Text", -apple-system, system-ui, sans-serif;
+    font-size: 11px; font-weight: 510; vertical-align: 1px;
+  }
+  .actions { display: flex; gap: 2px; opacity: 0; transition: opacity 120ms ease; }
+  .row:hover .actions, .row:focus-within .actions { opacity: 1; }
+  @media (hover: none) { .actions { opacity: 1; } }
+  .empty { padding: 28px 16px 32px; text-align: center; color: var(--text-4); font-size: 13px; }
+
+  @media (max-width: 640px) {
+    main { padding-top: 24px; }
+    .fields { grid-template-columns: 1fr; }
+    .fields .btn-primary { width: 100%; }
+    .row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 0; }
+    .target { grid-column: 1; grid-row: 2; font-size: 12px; }
+    .actions { grid-column: 2; grid-row: 1 / span 2; }
   }
 </style>
 </head>
@@ -74,39 +174,46 @@
     </div>
   </header>
 
-  <section>
-    <h2>Add or change a name</h2>
-    <form id="add">
-      <div>
-        <label for="name">Name</label>
-        <div class="name-wrap"><input type="text" id="name" required pattern="[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?" autocomplete="off" placeholder="gym"><span id="suffix">.internal</span></div>
+  <section class="panel">
+    <div class="panel-head"><h2>Add or change a name</h2></div>
+    <form id="add" autocomplete="off">
+      <div class="fields">
+        <div>
+          <label class="field-label" for="name">Name</label>
+          <div class="control">
+            <input type="text" id="name" required pattern="[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?" placeholder="gym" spellcheck="false">
+            <span class="suffix" id="suffix">.internal</span>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="target">Target</label>
+          <div class="control">
+            <input type="text" id="target" class="mono" required placeholder="http://100.64.0.10:8080" spellcheck="false">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="save">Save</button>
       </div>
-      <div>
-        <label for="target">Target</label>
-        <input type="text" id="target" required autocomplete="off" placeholder="http://100.64.0.10:8080">
+      <div class="options">
+        <label class="check"><input type="checkbox" id="insecure"> Target uses HTTPS with a certificate the router cannot verify</label>
+        <p id="msg" role="status"></p>
       </div>
-      <button type="submit">Save</button>
-      <label class="check"><input type="checkbox" id="insecure"> Target uses HTTPS with a certificate the router cannot verify</label>
     </form>
-    <p id="msg"></p>
   </section>
 
-  <section>
-    <h2>Names</h2>
-    <table>
-      <thead><tr><th>Name</th><th>Target</th><th></th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <p class="empty" id="empty" hidden>No names yet.</p>
+  <section class="panel">
+    <div class="panel-head"><h2>Names</h2><span class="count" id="count"></span></div>
+    <ul class="list" id="rows"></ul>
+    <p class="empty" id="empty" hidden>No names yet. Add one above.</p>
   </section>
+
 </main>
 <script>
 let domain = "internal";
 const $ = (id) => document.getElementById(id);
 
-function say(text, isError) {
+function say(text, kind) {
   $("msg").textContent = text;
-  $("msg").className = isError ? "error" : "";
+  $("msg").className = kind || "";
 }
 
 async function api(method, path, body) {
@@ -123,11 +230,16 @@ async function api(method, path, body) {
   return res.status === 204 ? null : res.json();
 }
 
-function button(text, cls, onClick) {
-  const b = document.createElement("button");
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function ghost(text, extra, onClick) {
+  const b = el("button", "btn btn-ghost" + (extra ? " " + extra : ""), text);
   b.type = "button";
-  b.className = cls;
-  b.textContent = text;
   b.onclick = onClick;
   return b;
 }
@@ -136,72 +248,72 @@ function render(routes) {
   const rows = $("rows");
   rows.replaceChildren();
   $("empty").hidden = routes.length > 0;
+  rows.hidden = routes.length === 0;
+  $("count").textContent = routes.length ? routes.length + (routes.length === 1 ? " name" : " names") : "";
   for (const r of routes) {
     const host = r.name + "." + domain;
-    const tr = document.createElement("tr");
+    const li = el("li", "row");
 
-    const nameTd = document.createElement("td");
-    const link = document.createElement("a");
+    const link = el("a");
     link.href = "https://" + host + "/";
-    link.textContent = host;
-    nameTd.append(link);
+    link.append(r.name, el("span", "domain", "." + domain));
 
-    const targetTd = document.createElement("td");
-    targetTd.textContent = r.target;
-    if (r.insecure_tls) {
-      const tag = document.createElement("div");
-      tag.className = "tag";
-      tag.textContent = "certificate not checked";
-      targetTd.append(tag);
-    }
+    const target = el("div", "target mono", r.target);
+    if (r.insecure_tls) target.append(el("span", "tag", "TLS not checked"));
 
-    const actionTd = document.createElement("td");
-    actionTd.append(
-      button("Edit", "link", () => {
+    const actions = el("div", "actions");
+    actions.append(
+      ghost("Edit", "", () => {
         $("name").value = r.name;
         $("target").value = r.target;
         $("insecure").checked = !!r.insecure_tls;
         $("target").focus();
+        say("Editing " + host + ".");
       }),
-      button("Delete", "link danger", async () => {
+      ghost("Delete", "danger", async () => {
         if (!confirm("Delete " + host + "?")) return;
         try {
           await api("DELETE", "/api/routes/" + encodeURIComponent(r.name));
-          say("Deleted " + host + ".");
+          say("Deleted " + host + ".", "ok");
           load();
-        } catch (e) { say(e.message, true); }
+        } catch (e) { say(e.message, "error"); }
       }),
     );
 
-    tr.append(nameTd, targetTd, actionTd);
-    rows.append(tr);
+    li.append(link, target, actions);
+    rows.append(li);
   }
 }
 
 async function load() {
   try { render(await api("GET", "/api/routes")); }
-  catch (e) { say("Could not load names: " + e.message, true); }
+  catch (e) { say("Could not load names: " + e.message, "error"); }
 }
 
 $("add").addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const name = $("name").value.trim().toLowerCase();
+  $("save").disabled = true;
   try {
     await api("PUT", "/api/routes/" + encodeURIComponent(name), {
       target: $("target").value.trim(),
       insecure_tls: $("insecure").checked,
     });
-    say("Saved " + name + "." + domain + ". The first visit can take a few seconds while its certificate is issued.");
+    say("Saved " + name + "." + domain + ". The first visit takes a few seconds while its certificate is issued.", "ok");
     $("add").reset();
     load();
-  } catch (e) { say(e.message, true); }
+  } catch (e) {
+    say(e.message, "error");
+  } finally {
+    $("save").disabled = false;
+  }
 });
 
 api("GET", "/api/info").then((info) => {
   domain = info.domain;
   $("suffix").textContent = "." + domain;
   load();
-}).catch((e) => say("Could not reach the router: " + e.message, true));
+}).catch((e) => say("Could not reach the router: " + e.message, "error"));
 </script>
 </body>
 </html>
