@@ -28,6 +28,8 @@ services:
       - ROUTER_DNS_IPV4=10.9.9.9
       - CA_ROOT_CERT=/ca/ca.crt
       - CA_ROOT_KEY=/ca/ca.key
+      - CA_INTERMEDIATE_CERT=/ca/ca.crt
+      - CA_INTERMEDIATE_KEY=/ca/ca.key
     volumes:
       - router-data:/data
 

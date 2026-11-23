@@ -79,6 +79,11 @@ the first time it's requested.
      -subj "/CN=internal-router CA" -keyout ca/ca.key -out ca/ca.crt
    ```
 
+   Caddy normally signs names with an intermediate it creates from your root. If your root has
+   `pathlen:0` it can't sign an intermediate, so also set `CA_INTERMEDIATE_CERT=/ca/ca.crt` and
+   `CA_INTERMEDIATE_KEY=/ca/ca.key` and Caddy signs with the root directly. Check with
+   `openssl x509 -in ca/ca.crt -noout -ext basicConstraints`.
+
    Then install `ca/ca.crt` as a trusted root on each device that will open the names. If you'd
    rather let Caddy make its root, remove `CA_ROOT_CERT` and `CA_ROOT_KEY` from `compose.yaml`
    and install `caddy/data/caddy/pki/authorities/local/root.crt` after the first start.
@@ -177,6 +182,7 @@ TrueNAS feature, and re-creating the app removes it.
 | `ROUTER_DOMAIN` | `internal` | The private domain |
 | `ROUTER_NAME` | `router` | Name of the UI, so the UI is at `router.internal` |
 | `CA_ROOT_CERT`, `CA_ROOT_KEY` | empty | Root CA files, as paths inside the Caddy container |
+| `CA_INTERMEDIATE_CERT`, `CA_INTERMEDIATE_KEY` | empty | Signing CA files. Set them to the root's files when the root has `pathlen:0` |
 | `ROUTER_DATA` | `/data` | Where `routes.json` is kept |
 | `ROUTER_DNS_LISTEN` | `:53` | DNS listen address |
 | `ROUTER_DNS_INTERFACE` | `tailscale0` | Interface whose addresses DNS answers with |

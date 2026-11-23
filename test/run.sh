@@ -6,12 +6,11 @@ fail() { echo "FAIL: $*"; exit 1; }
 https() { curl -s --max-time 10 --cacert ca/ca.crt --resolve "$1:18443:127.0.0.1" "https://$1:18443$2"; }
 cli() { docker compose exec -T router internal-router "$@"; }
 
-if [ ! -f ca/ca.key ]; then
-  mkdir -p ca
-  openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 30 \
-    -subj "/CN=internal-router test CA" -keyout ca/ca.key -out ca/ca.crt 2>/dev/null
-  chmod 644 ca/ca.key
-fi
+mkdir -p ca
+openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 30 \
+  -subj "/CN=internal-router test CA" -keyout ca/ca.key -out ca/ca.crt \
+  -addext "basicConstraints=critical,CA:TRUE,pathlen:0" -addext "keyUsage=critical,keyCertSign,cRLSign" 2>/dev/null
+chmod 644 ca/ca.key
 
 docker compose down -v >/dev/null 2>&1 || true
 docker compose up -d --build --wait-timeout 120 >/dev/null 2>&1 || docker compose up -d --build

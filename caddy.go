@@ -16,6 +16,8 @@ type caddySettings struct {
 	UIDial     string
 	CARootCert string
 	CARootKey  string
+	CAIntCert  string
+	CAIntKey   string
 }
 
 func (c caddySettings) host(name string) string {
@@ -62,6 +64,13 @@ func buildCaddyConfig(c caddySettings, routes []Route) (map[string]any, error) {
 		ca["root"] = map[string]any{
 			"certificate": c.CARootCert,
 			"private_key": c.CARootKey,
+			"format":      "pem_file",
+		}
+	}
+	if c.CAIntCert != "" && c.CAIntKey != "" {
+		ca["intermediate"] = map[string]any{
+			"certificate": c.CAIntCert,
+			"private_key": c.CAIntKey,
 			"format":      "pem_file",
 		}
 	}

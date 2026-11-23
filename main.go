@@ -121,6 +121,8 @@ func serve() error {
 		UIDial:     env("ROUTER_UI_LISTEN", "127.0.0.1:8080"),
 		CARootCert: os.Getenv("CA_ROOT_CERT"),
 		CARootKey:  os.Getenv("CA_ROOT_KEY"),
+		CAIntCert:  os.Getenv("CA_INTERMEDIATE_CERT"),
+		CAIntKey:   os.Getenv("CA_INTERMEDIATE_KEY"),
 	}
 
 	dns := &dnsServer{
