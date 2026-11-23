@@ -1,0 +1,55 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:stable
+    pull_policy: always
+    hostname: router
+    restart: unless-stopped
+    environment:
+      - TS_HOSTNAME=router
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.ip_unprivileged_port_start=0
+    volumes:
+      - /mnt/POOL/apps/internal-router/tailscale:/var/lib/tailscale
+
+  caddy:
+    image: caddy:2-alpine
+    pull_policy: always
+    restart: unless-stopped
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
+    command: ["caddy", "run", "--resume"]
+    volumes:
+      - /mnt/POOL/apps/internal-router/ca:/ca:ro
+      - /mnt/POOL/apps/internal-router/caddy/data:/data
+      - /mnt/POOL/apps/internal-router/caddy/config:/config
+      - /mnt/POOL/apps/internal-router/resolv.conf:/etc/resolv.conf:ro
+
+  router:
+    image: ghcr.io/devwael/internal-router:latest
+    pull_policy: always
+    restart: unless-stopped
+    user: "568:568"
+    network_mode: service:tailscale
+    depends_on:
+      - caddy
+    environment:
+      - ROUTER_DOMAIN=internal
+      - ROUTER_NAME=router
+      - CA_ROOT_CERT=/ca/ca.crt
+      - CA_ROOT_KEY=/ca/ca.key
+    volumes:
+      - /mnt/POOL/apps/internal-router/data:/data
+
+x-portals:
+  - name: Web UI
+    scheme: https
+    host: router.internal
+    port: 443
+    path: /
