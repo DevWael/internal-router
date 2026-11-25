@@ -40,7 +40,8 @@ router (Tailscale node "router")
 ```
 
 - The stack is three containers sharing one network namespace: `tailscale`, `caddy` and
-  `internal-router`.
+  `internal-router`. If the `tailscale` container restarts, `caddy` and `internal-router` exit
+  within about 30 seconds and Docker restarts them into its new network namespace.
 - `internal-router` keeps the names in `data/routes.json` and pushes the full config to Caddy's
   admin API, which only listens on `localhost` inside the stack. Caddy is never reconfigured by
   hand.

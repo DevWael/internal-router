@@ -72,6 +72,20 @@ for i in $(seq 1 30); do cli health >/dev/null 2>&1 && break; sleep 1; done
 cli list | grep -q "echo.internal" || fail "routes lost after router restart"
 echo "ok: routes survive Caddy and router restarts"
 
+docker compose restart net >/dev/null 2>&1
+recovered=
+for i in $(seq 1 60); do
+  if curl -sf --max-time 5 --cacert ca/ca.crt --resolve router.internal:18443:127.0.0.1 https://router.internal:18443/ >/dev/null 2>&1 \
+    && cli health >/dev/null 2>&1 \
+    && [ "$(dig +short +time=2 +tries=1 -p 18053 @127.0.0.1 anything.internal A)" = 10.9.9.9 ]; then
+    recovered=1
+    break
+  fi
+  sleep 2
+done
+[ -n "$recovered" ] || fail "stack did not recover after the net container restarted"
+echo "ok: caddy and router recover after the network container restarts"
+
 cli rm whoami
 sleep 1
 curl -sf --max-time 5 --cacert ca/ca.crt --resolve whoami.internal:18443:127.0.0.1 https://whoami.internal:18443/ >/dev/null 2>&1 \

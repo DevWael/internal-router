@@ -9,7 +9,9 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestParseTarget(t *testing.T) {
@@ -205,5 +207,27 @@ func TestTailnetMachines(t *testing.T) {
 
 	if _, err := newTailnet("").Machines(); err == nil {
 		t.Error("expected an error without a socket")
+	}
+}
+
+func TestWatchInterface(t *testing.T) {
+	err := watchInterface(func() error { return errors.New("gone") }, "tailscale0", 5*time.Millisecond, 40*time.Millisecond)
+	if err == nil || !strings.Contains(err.Error(), "tailscale0 missing") {
+		t.Fatalf("expected a missing-interface error, got %v", err)
+	}
+
+	var calls atomic.Int32
+	lookup := func() error {
+		if n := calls.Add(1); n%4 != 0 {
+			return errors.New("gone")
+		}
+		return nil
+	}
+	done := make(chan error, 1)
+	go func() { done <- watchInterface(lookup, "tailscale0", 5*time.Millisecond, 40*time.Millisecond) }()
+	select {
+	case err := <-done:
+		t.Fatalf("watcher gave up although the interface kept coming back: %v", err)
+	case <-time.After(300 * time.Millisecond):
 	}
 }
