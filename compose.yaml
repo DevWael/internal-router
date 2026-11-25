@@ -9,6 +9,7 @@ services:
       - TS_HOSTNAME=router
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
+      - TS_AUTH_ONCE=true
       - TS_SOCKET=/var/run/tailscale/tailscaled.sock
       - TS_AUTHKEY=${TS_AUTHKEY:-}
     devices:
@@ -28,6 +29,10 @@ services:
     depends_on:
       - tailscale
     command: ["caddy", "run", "--resume"]
+    healthcheck:
+      test: ["CMD-SHELL", "grep -q tailscale0: /proc/net/dev || kill 1"]
+      interval: 30s
+      timeout: 5s
     volumes:
       - ./ca:/ca:ro
       - ./caddy/data:/data

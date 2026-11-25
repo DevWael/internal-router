@@ -13,8 +13,13 @@ services:
 
   caddy:
     image: caddy:2-alpine
+    restart: unless-stopped
     network_mode: service:net
     command: ["caddy", "run", "--resume"]
+    healthcheck:
+      test: ["CMD-SHELL", "grep -q eth0: /proc/net/dev || kill 1"]
+      interval: 5s
+      timeout: 5s
     volumes:
       - ./ca:/ca:ro
       - caddy-data:/data
@@ -22,9 +27,10 @@ services:
 
   router:
     build: ..
+    restart: unless-stopped
     network_mode: service:net
     environment:
-      - ROUTER_DNS_INTERFACE=
+      - ROUTER_DNS_INTERFACE=eth0
       - ROUTER_DNS_IPV4=10.9.9.9
       - CA_ROOT_CERT=/ca/ca.crt
       - CA_ROOT_KEY=/ca/ca.key

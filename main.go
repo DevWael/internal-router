@@ -132,9 +132,16 @@ func serve() error {
 		fixedIPv6: net.ParseIP(os.Getenv("ROUTER_DNS_IPV6")),
 	}
 	dnsAddr := env("ROUTER_DNS_LISTEN", ":53")
-	errc := make(chan error, 3)
+	errc := make(chan error, 4)
 	go func() { errc <- fmt.Errorf("dns udp: %w", dns.serveUDP(dnsAddr)) }()
 	go func() { errc <- fmt.Errorf("dns tcp: %w", dns.serveTCP(dnsAddr)) }()
+
+	if dns.iface != "" {
+		iface := dns.iface
+		go func() {
+			errc <- watchInterface(func() error { _, err := net.InterfaceByName(iface); return err }, iface, 5*time.Second, 30*time.Second)
+		}()
+	}
 
 	go keepCaddyLoaded(cs, store)
 
@@ -146,6 +153,24 @@ func serve() error {
 	go func() { errc <- fmt.Errorf("http: %w", srv.ListenAndServe()) }()
 	log.Printf("internal-router: *.%s, UI at https://%s, DNS on %s, %d routes", domain, cs.host(routerName), dnsAddr, len(store.List()))
 	return <-errc
+}
+
+// If tailscale restarts, Docker gives it a new network namespace and this one stays empty.
+func watchInterface(lookup func() error, name string, every, maxMissing time.Duration) error {
+	var missingSince time.Time
+	for {
+		time.Sleep(every)
+		if lookup() == nil {
+			missingSince = time.Time{}
+			continue
+		}
+		if missingSince.IsZero() {
+			missingSince = time.Now()
+		}
+		if time.Since(missingSince) >= maxMissing {
+			return fmt.Errorf("interface %s missing for %s; exiting so Docker restarts the container into the tailscale network namespace", name, maxMissing)
+		}
+	}
 }
 
 func keepCaddyLoaded(cs caddySettings, store *Store) {
